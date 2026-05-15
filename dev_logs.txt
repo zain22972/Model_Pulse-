@@ -1,0 +1,229 @@
+
+> v2a-notion-lead-form@0.0.1 dev
+> npm run dev:infra && concurrently -k -n ui,bff,agent -c blue,cyan,green "npm run dev:ui" "npm run dev:bff" "npm run dev:agent"
+
+
+> v2a-notion-lead-form@0.0.1 dev:infra
+> docker compose --project-directory . -f deployment/docker-compose.yml up -d --wait
+
+ Container hackathon-intelligence-notion-postgres-1 Running 
+ Container hackathon-intelligence-notion-redis-1 Running 
+ Container hackathon-intelligence-notion-intelligence-1 Running 
+ Container hackathon-intelligence-notion-postgres-1 Waiting 
+ Container hackathon-intelligence-notion-redis-1 Waiting 
+ Container hackathon-intelligence-notion-postgres-1 Healthy 
+ Container hackathon-intelligence-notion-redis-1 Healthy 
+ Container hackathon-intelligence-notion-redis-1 Waiting 
+ Container hackathon-intelligence-notion-intelligence-1 Waiting 
+ Container hackathon-intelligence-notion-postgres-1 Waiting 
+ Container hackathon-intelligence-notion-redis-1 Healthy 
+ Container hackathon-intelligence-notion-postgres-1 Healthy 
+ Container hackathon-intelligence-notion-intelligence-1 Healthy 
+[ui] 
+[ui] > v2a-notion-lead-form@0.0.1 dev:ui
+[ui] > npm run dev --workspace frontend
+[ui] 
+[bff] 
+[bff] > v2a-notion-lead-form@0.0.1 dev:bff
+[bff] > npm run dev --workspace bff
+[bff] 
+[agent] 
+[agent] > v2a-notion-lead-form@0.0.1 dev:agent
+[agent] > cd apps/agent && uv run langgraph dev --port 8133
+[agent] 
+[bff] 
+[bff] > bff@0.1.0 dev
+[bff] > tsx watch --env-file=../../.env src/server.ts
+[bff] 
+[ui] 
+[ui] > frontend@0.0.1 dev
+[ui] > next dev --turbopack -p 3010
+[ui] 
+[agent] INFO:langgraph_api.cli:
+[agent] 
+[agent]         Welcome to
+[agent] 
+[agent] \u2566  \u250c\u2500\u2510\u250c\u2510\u250c\u250c\u2500\u2510\u2554\u2550\u2557\u252c\u2500\u2510\u250c\u2500\u2510\u250c\u2500\u2510\u252c \u252c
+[agent] \u2551  \u251c\u2500\u2524\u2502\u2502\u2502\u2502 \u252c\u2551 \u2566\u251c\u252c\u2518\u251c\u2500\u2524\u251c\u2500\u2518\u251c\u2500\u2524
+[agent] \u2569\u2550\u255d\u2534 \u2534\u2518\u2514\u2518\u2514\u2500\u2518\u255a\u2550\u255d\u2534\u2514\u2500\u2534 \u2534\u2534  \u2534 \u2534
+[agent] 
+[agent] - \U0001f680 API: [36mhttp://127.0.0.1:8133[0m
+[agent] - \U0001f3a8 Studio UI: [36mhttps://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:8133[0m
+[agent] - \U0001f4da API Docs: [36mhttp://127.0.0.1:8133/docs[0m
+[agent] 
+[agent] This in-memory server is designed for development and testing.
+[agent] For production use, please use LangSmith Deployment.
+[agent] 
+[agent] 
+[ui]    ▲ Next.js 15.5.18 (Turbopack)
+[ui]    - Local:        http://localhost:3010
+[ui]    - Network:      http://192.168.0.173:3010
+[ui] 
+[ui]  ✓ Starting...
+[ui]  ✓ Ready in 1493ms
+[bff] BFF ready at http://localhost:4000
+[agent] 2026-05-13T20:38:58.328066Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:38:58.358538Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:38:58.441633Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:38:58.451506Z [info     ] Starting In-Memory runtime with langgraph-api=0.8.7 and in-memory runtime=0.28.1 [langgraph_runtime_inmem.lifespan] api_variant=local_dev langgraph_api_version=0.8.7 langgraph_runtime_inmem_version=0.28.1 thread_name=asyncio_0 version=0.8.7
+[agent] 2026-05-13T20:38:58.882247Z [info     ] No license key or control plane API key set, skipping metadata loop [langgraph_api.metadata] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] [intelligence_cleanup] no orphan threads to clean (agent_id="default")
+[agent] [runtime] AGENT_RUNTIME=gemini-flash-react
+[agent] Backend tools loaded: 6 tools
+[agent] 2026-05-14 02:09:00,400 - mcp_use.telemetry.telemetry - INFO - Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.
+[agent] 2026-05-13T20:39:00.401604Z [info     ] Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable. [mcp_use.telemetry.telemetry] api_variant=local_dev asctime='2026-05-14 02:09:00,400' langgraph_api_version=0.8.7 message='Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.' thread_name=asyncio_0
+[agent] 2026-05-13T20:39:08.416430Z [info     ] 13 changes detected            [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] [lead_store] ok: source=notion db="ai-workshop-provider-community" rows=50 missing=[]
+[agent] 2026-05-13T20:39:14.282440Z [warning  ] Graph import exceeded the expected startup time. Slow initialization (often due to work executed at import time) can delay readiness, slow scale-out velocity, and may cause deployments to be marked unhealthy.
+[agent]     To get detailed profiling of slow operations, set FF_PROFILE_IMPORTS=true [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=15.400031100001797 graph_id=default langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main.py thread_name=asyncio_0
+[agent] 2026-05-13T20:39:14.327710Z [warning  ] C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\structlog\stdlib.py:1166: UserWarning: Remove `format_exc_info` from your processor chain if you want pretty exceptions.
+[agent]   ed = p(logger, meth_name, ed)  # type: ignore[arg-type]
+[agent]  [py.warnings] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:14.326705Z [info     ] Importing graph profiling      [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=0.043169500000658445 graph_id=incident langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main_incident.py thread_name=asyncio_0
+[agent] ValueError("Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.\n\nTo simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details.")
+[agent] 2026-05-13T20:39:14.332218Z [error    ] Graph 'incident' failed to load: ValueError: Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.
+[agent] 
+[agent] To simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details. [langgraph_runtime_inmem.lifespan] action=fix_user_graph api_variant=local_dev error_boundary=user_graph error_message="ValueError: Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.\n\nTo simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details." error_type=ValueError graph_id=incident langgraph_api_version=0.8.7 location=./main_incident.py summary="ValueError: ValueError: Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.\n\nTo simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details." thread_name=asyncio_0 user_traceback='Traceback (most recent call last):\n  File "C:\\Model_Pulse--main\\apps\\agent\\.venv\\Lib\\site-packages\\langgraph_api\\graph.py", line 627, in collect_graphs_from_env\n    graph = await run_in_executor(None, _graph_from_spec, spec)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Model_Pulse--main\\apps\\agent\\.venv\\Lib\\site-packages\\langgraph_api\\utils\\config.py", line 145, in run_in_executor\n    return await asyncio.get_running_loop().run_in_executor(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Users\\zaini\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\concurrent\\futures\\thread.py", line 59, in run\n    result = self.fn(*self.args, **self.kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Model_Pulse--main\\apps\\agent\\.venv\\Lib\\site-packages\\langgraph_api\\utils\\config.py", line 136, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Model_Pulse--main\\apps\\agent\\.venv\\Lib\\site-packages\\langgraph_api\\timing\\timer.py", line 101, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File "C:\\Model_Pulse--main\\apps\\agent\\.venv\\Lib\\site-packages\\langgraph_api\\graph.py", line 800, in _graph_from_spec\n    raise ValueError(\nValueError: Heads up! Your graph \'graph\' from \'./main_incident.py\' includes a custom checkpointer (type <class \'langgraph.checkpoint.memory.InMemorySaver\'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class \'langgraph.checkpoint.memory.InMemorySaver\'>) here isn\'t necessary and will be ignored when deployed.\n\nTo simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class \'langgraph.checkpoint.memory.InMemorySaver\'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details.\n'
+[agent] 2026-05-13T20:39:14.332218Z [info     ] Shutting down remote graphs    [langgraph_api.graph] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:14.334747Z [info     ] Stopping dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:14.334747Z [info     ] dev persistence flush loop exiting [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=Thread-1
+[agent] 2026-05-13T20:39:14.355817Z [error    ] Traceback (most recent call last):
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\graph.py", line 627, in collect_graphs_from_env
+[agent]     graph = await run_in_executor(None, _graph_from_spec, spec)
+[agent]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\utils\config.py", line 145, in run_in_executor
+[agent]     return await asyncio.get_running_loop().run_in_executor(
+[agent]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+[agent]     result = self.fn(*self.args, **self.kwargs)
+[agent]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\utils\config.py", line 136, in wrapper
+[agent]     return func(*args, **kwargs)
+[agent]            ^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\timing\timer.py", line 101, in wrapper
+[agent]     return func(*args, **kwargs)
+[agent]            ^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\graph.py", line 800, in _graph_from_spec
+[agent]     raise ValueError(
+[agent] ValueError: Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.
+[agent] 
+[agent] To simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details.
+[agent] 
+[agent] The above exception was the direct cause of the following exception:
+[agent] 
+[agent] Traceback (most recent call last):
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\starlette\routing.py", line 638, in lifespan
+[agent]     async with self.lifespan_context(app) as maybe_state:
+[agent]                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+[agent]     return await anext(self.gen)
+[agent]            ^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\timing\timer.py", line 227, in combined_lifespan
+[agent]     await stack.enter_async_context(ls(app))
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+[agent]     result = await _enter(cm)
+[agent]              ^^^^^^^^^^^^^^^^
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+[agent]     return await anext(self.gen)
+[agent]            ^^^^^^^^^^^^^^^^^^^^^
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_runtime_inmem\lifespan.py", line 118, in lifespan
+[agent]     await graph.collect_graphs_from_env(True)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\graph.py", line 629, in collect_graphs_from_env
+[agent]     raise GraphLoadError(spec, exc) from exc
+[agent] langgraph_api.utils.errors.GraphLoadError: Failed to load graph 'incident' from ./main_incident.py: Heads up! Your graph 'graph' from './main_incident.py' includes a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>). With LangGraph API, persistence is handled automatically by the platform, so providing a custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) here isn't necessary and will be ignored when deployed.
+[agent] 
+[agent] To simplify your setup and use the built-in persistence, please remove the custom checkpointer (type <class 'langgraph.checkpoint.memory.InMemorySaver'>) from your graph definition. If you are looking to customize which postgres database to connect to, please set the `POSTGRES_URI` environment variable. See https://langchain-ai.github.io/langgraph/cloud/reference/env_var/#postgres_uri_custom for more details.
+[agent]  [uvicorn.error] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:14.356824Z [error    ] Application startup failed. Exiting. [uvicorn.error] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:14.419762Z [info     ] 22 changes detected            [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:22.430798Z [info     ] 1 change detected              [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:22.431302Z [warning  ] WatchFiles detected changes in 'src\incident_graph.py'. Reloading... [uvicorn.error] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent]  2026-05-13T20:39:23.820443Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:23.839276Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:23.900694Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:23.907011Z [info     ] Starting In-Memory runtime with langgraph-api=0.8.7 and in-memory runtime=0.28.1 [langgraph_runtime_inmem.lifespan] api_variant=local_dev langgraph_api_version=0.8.7 langgraph_runtime_inmem_version=0.28.1 thread_name=asyncio_0 version=0.8.7
+[agent] 2026-05-13T20:39:24.260084Z [info     ] No license key or control plane API key set, skipping metadata loop [langgraph_api.metadata] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] [intelligence_cleanup] no orphan threads to clean (agent_id="default")
+[agent] [runtime] AGENT_RUNTIME=gemini-flash-react
+[agent] Backend tools loaded: 6 tools
+[agent] 2026-05-14 02:09:25,218 - mcp_use.telemetry.telemetry - INFO - Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.
+[agent] 2026-05-13T20:39:25.218810Z [info     ] Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable. [mcp_use.telemetry.telemetry] api_variant=local_dev asctime='2026-05-14 02:09:25,218' langgraph_api_version=0.8.7 message='Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.' thread_name=asyncio_0
+[agent] 2026-05-13T20:39:26.360333Z [info     ] 1 change detected              [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:26.360333Z [warning  ] WatchFiles detected changes in 'src\incident_graph.py'. Reloading... [uvicorn.error] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent]  Terminate batch job (Y/N)? 
+[bff] Terminate batch job (Y/N)? 
+[ui] Terminate batch job (Y/N)? [?25h
+[agent] Terminate batch job (Y/N)? 
+[ui] npm run dev:ui exited with code 1
+--> Sending SIGTERM to other processes..
+[bff] npm run dev:bff exited with code 1
+--> Sending SIGTERM to other processes..
+[agent] [lead_store] ok: source=notion db="ai-workshop-provider-community" rows=50 missing=[]
+[agent] 2026-05-13T20:39:37.163898Z [warning  ] Graph import exceeded the expected startup time. Slow initialization (often due to work executed at import time) can delay readiness, slow scale-out velocity, and may cause deployments to be marked unhealthy.
+[agent]     To get detailed profiling of slow operations, set FF_PROFILE_IMPORTS=true [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=12.904073500001687 graph_id=default langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main.py thread_name=asyncio_0
+[agent] 2026-05-13T20:39:37.217039Z [info     ] Importing graph profiling      [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=0.05232180000166409 graph_id=incident langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main_incident.py thread_name=asyncio_0
+[agent] 2026-05-13T20:39:37.338129Z [info     ] Application started up in 13.844s [langgraph_api.timing.timer] api_variant=local_dev elapsed=13.843999999997322 langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:37.405628Z [info     ] Starting cron scheduler        [langgraph_api.cron_scheduler] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:37.405628Z [info     ] Starting queue with shared loop [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:37.407134Z [info     ] Starting 1 background workers  [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:37.407134Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.8.7 max=1 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:37.512269Z [info     ] Shutting down background workers [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:37.514816Z [info     ] Shutting down remote graphs    [langgraph_api.graph] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:37.516330Z [info     ] Stopping dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:37.516330Z [info     ] dev persistence flush loop exiting [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=Thread-1
+[agent] 2026-05-13T20:39:38.716986Z [info     ] 27 changes detected            [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:39.690013Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:39.710991Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:39.775554Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:39.780140Z [info     ] Starting In-Memory runtime with langgraph-api=0.8.7 and in-memory runtime=0.28.1 [langgraph_runtime_inmem.lifespan] api_variant=local_dev langgraph_api_version=0.8.7 langgraph_runtime_inmem_version=0.28.1 thread_name=asyncio_0 version=0.8.7
+[agent] 2026-05-13T20:39:40.125577Z [info     ] No license key or control plane API key set, skipping metadata loop [langgraph_api.metadata] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] [intelligence_cleanup] no orphan threads to clean (agent_id="default")
+[agent] [runtime] AGENT_RUNTIME=gemini-flash-react
+[agent] Backend tools loaded: 6 tools
+[agent] 2026-05-14 02:09:41,155 - mcp_use.telemetry.telemetry - INFO - Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.
+[agent] 2026-05-13T20:39:41.155157Z [info     ] Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable. [mcp_use.telemetry.telemetry] api_variant=local_dev asctime='2026-05-14 02:09:41,155' langgraph_api_version=0.8.7 message='Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.' thread_name=asyncio_0
+[agent] 2026-05-13T20:39:49.768376Z [info     ] 13 changes detected            [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] [lead_store] ok: source=notion db="ai-workshop-provider-community" rows=50 missing=[]
+[agent] 2026-05-13T20:39:52.855838Z [warning  ] Graph import exceeded the expected startup time. Slow initialization (often due to work executed at import time) can delay readiness, slow scale-out velocity, and may cause deployments to be marked unhealthy.
+[agent]     To get detailed profiling of slow operations, set FF_PROFILE_IMPORTS=true [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=12.729867699999886 graph_id=default langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main.py thread_name=asyncio_0
+[agent] 2026-05-13T20:39:52.889736Z [info     ] Importing graph profiling      [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=0.03323540000201319 graph_id=incident langgraph_api_version=0.8.7 module=None name=_graph_from_spec path=./main_incident.py thread_name=asyncio_0
+[agent] 2026-05-13T20:39:52.949927Z [info     ] Application started up in 13.594s [langgraph_api.timing.timer] api_variant=local_dev elapsed=13.59400000000096 langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:52.996729Z [info     ] Starting cron scheduler        [langgraph_api.cron_scheduler] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread
+[agent] 2026-05-13T20:39:52.998240Z [info     ] Starting queue with shared loop [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:52.999248Z [info     ] Starting 1 background workers  [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=asyncio_0
+[agent] Server started in 57.60s
+[agent] 2026-05-13T20:39:53.000248Z [info     ] 2026-05-13T20:39:53.000248Z [Worker stats                  info     ]  [Server started in 57.60s       [browser_openerlanggraph_runtime_inmem.queue] ]api_variant= local_dev langgraph_api_versionactive=0.8.7 message=='Server started in 57.60s' 0thread_name= 'Thread-2 (_open_browser)'
+[agent] api_variant=\U0001f3a8 Opening Studio in your browser...
+[agent] local_dev available=1 langgraph_api_version=0.8.7 max=1 thread_name=asyncio_0
+[agent] 2026-05-13T20:39:53.001459Z [info     ] --- Logging error ---
+[agent] Traceback (most recent call last):
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\logging\__init__.py", line 1163, in emit
+[agent]     stream.write(msg + self.terminator)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\colorama\ansitowin32.py", line 47, in write
+[agent]     self.__convertor.write(text)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\colorama\ansitowin32.py", line 177, in write
+[agent]     self.write_and_convert(text)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\colorama\ansitowin32.py", line 202, in write_and_convert
+[agent]     self.write_plain_text(text, cursor, start)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\colorama\ansitowin32.py", line 210, in write_plain_text
+[agent]     self.wrapped.write(text[start:end])
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+[agent]     return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+[agent]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[agent] UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3a8' in position 0: character maps to <undefined>
+[agent] Call stack:
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1032, in _bootstrap
+[agent]     self._bootstrap_inner()
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1075, in _bootstrap_inner
+[agent]     self.run()
+[agent]   File "C:\Users\zaini\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1012, in run
+[agent]     self._target(*self._args, **self._kwargs)
+[agent]   File "C:\Model_Pulse--main\apps\agent\.venv\Lib\site-packages\langgraph_api\cli.py", line 322, in _open_browser
+[agent]     thread_logger.info(
+[agent] Message: '\U0001f3a8 Opening Studio in your browser...'
+[agent] Arguments: ()
+[agent] URL: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:8133
+[agent] 2026-05-13T20:39:53.006698Z [info     ] URL: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:8133 [browser_opener] api_variant=local_dev langgraph_api_version=0.8.7 message='URL: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:8133' thread_name='Thread-2 (_open_browser)'
+[agent] 2026-05-13T20:39:53.511393Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.8.7 n_pending=0 n_running=1 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_0
+[agent] 2026-05-13T20:39:54.182226Z [info     ] Getting auth instance: None    [langgraph_api.auth.custom] api_variant=local_dev langgraph_api_version=0.8.7 langgraph_auth=None method=GET path=/assistants/{assistant_id} thread_name=MainThread
+[agent] 2026-05-13T20:39:59.786822Z [info     ] 13 changes detected            [watchfiles.main] api_variant=local_dev langgraph_api_version=0.8.7 thread_name=MainThread

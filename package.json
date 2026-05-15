@@ -1,0 +1,28 @@
+{
+  "name": "v2a-notion-lead-form",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:infra": "docker compose --project-directory . -f deployment/docker-compose.yml up -d --wait",
+    "dev:infra:down": "docker compose --project-directory . -f deployment/docker-compose.yml down",
+    "dev": "npm run dev:infra && concurrently -k -n ui,bff,agent -c blue,cyan,green \"npm run dev:ui\" \"npm run dev:bff\" \"npm run dev:agent\"",
+    "dev:full": "npm run dev:infra && concurrently -k -n ui,bff,agent,mcp -c blue,cyan,green,magenta \"npm run dev:ui\" \"npm run dev:bff\" \"npm run dev:agent\" \"npm run dev:mcp\"",
+    "dev:ui": "npm run dev --workspace frontend",
+    "dev:bff": "npm run dev --workspace bff",
+    "dev:agent": "cd apps/agent && uv run langgraph dev --port 8133",
+    "dev:mcp": "npm run dev --workspace mcp",
+    "install:agent": "cd apps/agent && uv sync",
+    "install:mcp": "npm install --workspace mcp",
+    "postinstall": "npm run install:agent",
+    "license": "npx copilotkit license -n hackathon-kit",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace frontend",
+    "lint": "npm run lint --workspace frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

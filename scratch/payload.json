@@ -1,0 +1,10 @@
+{
+  "alert_type": "data_drift",
+  "model": "credit-risk-v4",
+  "service": "ml-serving",
+  "value": 0.42,
+  "threshold": 0.15,
+  "severity": "critical",
+  "triggered_at": "2026-05-09T17:15:00Z",
+  "tags": ["env:prod", "model:credit-risk"]
+}

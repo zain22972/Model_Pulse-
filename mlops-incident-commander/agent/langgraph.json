@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "default": "./main.py:graph",
+    "incident": "./main_incident.py:graph"
+  },
+  "env": ".env"
+}
