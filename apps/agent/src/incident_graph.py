@@ -21,8 +21,11 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
+
+from copilotkit.langgraph import copilotkit_emit_state, copilotkit_emit_message
 
 from .incident_prompts import (
     DIAGNOSE_PROMPT_TEMPLATE,
@@ -43,8 +46,6 @@ from .incident_tools import (
 def get_llm(model: str = "gemini-3.1-flash-lite"):
     """
     Returns a Gemini LLM instance.
-    Uses gemini-3.1-flash-lite — same model as runtime.py, confirmed working
-    with the project API key (backed by the CopilotKit agent platform quota).
     """
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "stub"
     print(f"DEBUG: Initializing LLM with model: {model}")
@@ -74,6 +75,20 @@ def _add_timeline(state: IncidentState, actor: str, action: str, detail: str = "
         entry["incident_id"] = actual_incident_id
         
     return state.get("timeline", []) + [entry]
+
+
+def _build_emit_state(state: IncidentState, updates: dict) -> dict:
+    """Build a state snapshot dict for copilotkit_emit_state (excludes messages)."""
+    merged = {}
+    for key in ["incidents", "active_incident_id", "charts", "incident_charts",
+                "timeline", "alerts", "suggested_runbook_step", "suggested_step_number",
+                "suggested_risk_level", "suggested_impact", "hitl_pending",
+                "hitl_pending_incident_id"]:
+        if key in updates:
+            merged[key] = updates[key]
+        elif key in state:
+            merged[key] = state[key]
+    return merged
 
 
 # ── Node: classify_incident ───────────────────────────────────────────────────
@@ -114,27 +129,16 @@ def _process_hitl_decision(state: IncidentState) -> dict:
     return {}  # Still waiting for user response
 
 
-def classify_incident(state: IncidentState) -> dict:
+async def classify_incident(state: IncidentState, config: RunnableConfig) -> dict:
     """
     Read the latest raw alert and create an Incident record.
-
-    If hitl_pending is True from a previous run, switch to processing
-    the user's approval/denial decision instead.
-
-    Alert source priority:
-      1. state.alerts  — populated via the webhook endpoint
-      2. [DATA]: blob in the latest HumanMessage  — populated via handleFire
-         (This is the main path for the second/third sequential incident)
-
-    Deduplication: if we already have an incident of the same type that was
-    created within 3 minutes of this alert's triggered_at, skip it.
     """
     # ── Pending HITL? Process user decision ────────────────────────────────
     if state.get("hitl_pending", False):
         result = _process_hitl_decision(state)
         if result:
+            await copilotkit_emit_state(config, _build_emit_state(state, result))
             return result
-        # Still waiting — emit heartbeat so the poll keeps showing
         return {"hitl_pending": True}
 
     alerts = list(state.get("alerts", []))
@@ -143,7 +147,6 @@ def classify_incident(state: IncidentState) -> dict:
     # --- Pull alert from messages if not already in state.alerts ---
     msg_alert = _extract_alert_from_messages(state.get("messages", []))
     if msg_alert and "alert_type" in msg_alert:
-        # Only add if it's not already the last entry (avoids double-processing)
         last_alert = alerts[-1] if alerts else {}
         if (
             last_alert.get("alert_type") != msg_alert.get("alert_type") or
@@ -157,15 +160,13 @@ def classify_incident(state: IncidentState) -> dict:
         print("DEBUG: classify_incident - no alerts found in state")
         return {}
 
-    alert = alerts[-1]  # process the newest alert
+    alert = alerts[-1]
     incident_type = alert.get("alert_type", "data_drift")
     model_name = alert.get("model", "unknown-model")
     service = alert.get("service", "ml-serving")
     alert_triggered_at = alert.get("triggered_at", "")
 
     # ── Deduplication guard ──────────────────────────────────────────────────
-    # If an incident of the same type+model was already created within the
-    # last 3 minutes, do NOT create a duplicate.
     for existing_inc in incidents:
         if existing_inc["type"] != incident_type or existing_inc["model_name"] != model_name:
             continue
@@ -180,9 +181,8 @@ def classify_incident(state: IncidentState) -> dict:
                 return {"active_incident_id": existing_inc["id"]}
         except Exception:
             pass
-    # ────────────────────────────────────────────────────────────────────────
 
-    # Determine severity from the alert value vs threshold
+    # Determine severity
     current_value = alert.get("value", 0)
     threshold = alert.get("threshold", 1)
     ratio = abs(current_value / threshold) if threshold else 1
@@ -220,21 +220,27 @@ def classify_incident(state: IncidentState) -> dict:
         incident_id=incident_id
     )
 
-    print(f"DEBUG: classify_incident - created {incident_id} for {incident_type}")
-    return {
+    result = {
         "incidents": existing + [incident],
         "active_incident_id": incident_id,
-        "alerts": alerts,   # persist the updated alerts list (includes msg-sourced alerts)
+        "alerts": alerts,
         "timeline": timeline,
     }
+
+    print(f"DEBUG: classify_incident - created {incident_id} for {incident_type}")
+    
+    # Emit state to frontend
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+    await copilotkit_emit_message(config, f"🚨 Incident {incident_id} created: {incident_type.replace('_', ' ').title()} on {model_name} (severity: {severity})")
+    
+    return result
 
 
 # ── Node: fetch_metrics ───────────────────────────────────────────────────────
 
-def fetch_metrics(state: IncidentState) -> dict:
+async def fetch_metrics(state: IncidentState, config: RunnableConfig) -> dict:
     """
     Generate synthetic metric charts for the active incident.
-    These stream to the frontend via STATE_DELTA.
     """
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
@@ -260,17 +266,23 @@ def fetch_metrics(state: IncidentState) -> dict:
     existing_charts = state.get("incident_charts", {})
     existing_charts[incident_id] = charts
 
-    return {
+    result = {
         "charts": charts, 
         "incident_charts": existing_charts,
         "timeline": timeline,
-        "active_incident_id": incident_id # Ensure it's passed through
+        "active_incident_id": incident_id,
     }
+
+    # Emit state to frontend (charts are now visible)
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+    await copilotkit_emit_message(config, f"📊 Retrieved {len(charts)} diagnostic charts for {incident['model_name']}")
+
+    return result
 
 
 # ── Node: triage ──────────────────────────────────────────────────────────────
 
-def triage(state: IncidentState) -> dict:
+async def triage(state: IncidentState, config: RunnableConfig) -> dict:
     """
     LLM node: maps incident type to runbook, builds system context.
     """
@@ -309,7 +321,7 @@ def triage(state: IncidentState) -> dict:
         *state.get("messages", []),
         HumanMessage(content=prompt),
     ]
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
 
     # Update incident status
     updated_incidents = []
@@ -326,19 +338,23 @@ def triage(state: IncidentState) -> dict:
         f"Runbook for {incident['type']} identified. First step prepared."
     )
 
-    return {
+    result = {
         "messages": [response],
         "incidents": updated_incidents,
         "timeline": timeline,
     }
 
+    # Emit state to frontend
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+
+    return result
+
 
 # ── Node: diagnose ────────────────────────────────────────────────────────────
 
-def diagnose(state: IncidentState) -> dict:
+async def diagnose(state: IncidentState, config: RunnableConfig) -> dict:
     """
     LLM node: performs root cause analysis over chart data.
-    Streams reasoning visible in the chat sidebar.
     """
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
@@ -378,9 +394,9 @@ def diagnose(state: IncidentState) -> dict:
         *state.get("messages", []),
         HumanMessage(content=prompt),
     ]
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
 
-    # Extract root cause if mentioned
+    # Extract root cause
     updated_incidents = []
     for inc in incidents:
         if inc["id"] == incident_id:
@@ -398,20 +414,23 @@ def diagnose(state: IncidentState) -> dict:
         "Root cause analysis performed over diagnostic metric anomalies."
     )
 
-    return {
+    result = {
         "messages": [response],
         "incidents": updated_incidents,
         "timeline": timeline,
     }
 
+    # Emit state to frontend
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+
+    return result
+
 
 # ── Node: propose_step (state-based HITL) ────────────────────────────────────
 
-def propose_step(state: IncidentState) -> dict:
+async def propose_step(state: IncidentState, config: RunnableConfig) -> dict:
     """
     Proposes the next runbook step by setting hitl_pending=True.
-    Graph ends at this node. Frontend polls agent.state to detect the pending flag.
-    When user responds, the next run classifies the decision and proceeds.
     """
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
@@ -431,7 +450,10 @@ def propose_step(state: IncidentState) -> dict:
             else:
                 updated_incidents.append(inc)
         timeline = _add_timeline(state, "system", "All runbook steps completed", "Incident resolved")
-        return {"incidents": updated_incidents, "timeline": timeline}
+        result = {"incidents": updated_incidents, "timeline": timeline}
+        await copilotkit_emit_state(config, _build_emit_state(state, result))
+        await copilotkit_emit_message(config, f"✅ All runbook steps completed. Incident {incident_id} resolved.")
+        return result
 
     step_text = runbook_steps[current_step]
     risk_level = get_risk_level(step_text)
@@ -442,7 +464,7 @@ def propose_step(state: IncidentState) -> dict:
         "destructive": "Will change production traffic — ensure rollback plan is ready",
     }
 
-    return {
+    result = {
         "suggested_runbook_step": step_text,
         "suggested_step_number": current_step + 1,
         "suggested_risk_level": risk_level,
@@ -451,11 +473,17 @@ def propose_step(state: IncidentState) -> dict:
         "hitl_pending_incident_id": incident_id,
     }
 
+    # Emit state to frontend (HITL proposal visible)
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+    await copilotkit_emit_message(config, f"⏸️ Step {current_step + 1}/{len(runbook_steps)}: {step_text}\n\nRisk: {risk_level.upper()} — {impact_map[risk_level]}\n\nAwaiting your approval...")
+
+    return result
+
 
 # ── Node: deny_step ────────────────────────────────────────────────────────────
 
-def deny_step(state: IncidentState) -> dict:
-    """Operator denied the remediation step — log it, leave charts as-is."""
+async def deny_step(state: IncidentState, config: RunnableConfig) -> dict:
+    """Operator denied the remediation step."""
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
     
@@ -473,18 +501,22 @@ def deny_step(state: IncidentState) -> dict:
         "Incident remains open"
     )
     
-    return {
+    result = {
         "incidents": updated_incidents,
         "timeline": timeline,
     }
 
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+    await copilotkit_emit_message(config, "❌ Remediation step rejected. Incident remains open for investigation.")
+
+    return result
+
 
 # ── Node: execute_remediation ─────────────────────────────────────────────────
 
-def execute_remediation(state: IncidentState) -> dict:
+async def execute_remediation(state: IncidentState, config: RunnableConfig) -> dict:
     """
     Execute the approved runbook step by advancing the runbook_step counter.
-    Simulates remediation without LLM calls to avoid BFF parsing issues.
     """
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
@@ -496,7 +528,6 @@ def execute_remediation(state: IncidentState) -> dict:
     current_step = incident.get("runbook_step", 0)
     step_text = state.get("suggested_runbook_step", "")
 
-    # Advance runbook step (simulated remediation)
     updated_incidents = []
     for inc in incidents:
         if inc["id"] == incident_id:
@@ -515,16 +546,21 @@ def execute_remediation(state: IncidentState) -> dict:
         step_text[:80],
     )
 
-    return {
+    result = {
         "messages": [AIMessage(content=f"Executed step {current_step + 1}: {step_text}")],
         "incidents": updated_incidents,
         "timeline": timeline,
     }
 
+    await copilotkit_emit_state(config, _build_emit_state(state, result))
+    await copilotkit_emit_message(config, f"✅ Executed step {current_step + 1}: {step_text}")
+
+    return result
+
 
 # ── Node: update_timeline ─────────────────────────────────────────────────────
 
-def update_timeline(state: IncidentState) -> dict:
+async def update_timeline(state: IncidentState, config: RunnableConfig) -> dict:
     """Refresh charts with latest data and check if incident is resolved."""
     incident_id = state.get("active_incident_id")
     incidents = state.get("incidents", [])
@@ -533,23 +569,24 @@ def update_timeline(state: IncidentState) -> dict:
     if not incident:
         return {}
 
-    # Refresh charts with slightly improved data (simulate remediation working)
     if incident.get("status") == "mitigating":
         charts = build_charts_for_incident(
             incident_type=incident["type"],
             model_name=incident["model_name"],
         )
-        # Reduce spike magnitude to simulate recovery
         for chart in charts:
-            chart["anomaly_windows"] = []  # anomalies clearing
-        
+            chart["anomaly_windows"] = []
+
         existing_charts = state.get("incident_charts", {})
         existing_charts[incident_id] = charts
-        
-        return {
+
+        result = {
             "charts": charts,
-            "incident_charts": existing_charts
+            "incident_charts": existing_charts,
         }
+
+        await copilotkit_emit_state(config, _build_emit_state(state, result))
+        return result
 
     return {}
 
@@ -559,7 +596,6 @@ def update_timeline(state: IncidentState) -> dict:
 def _extract_alert_from_messages(messages: list) -> dict | None:
     """
     Scan the message history (newest first) for a [DATA]: {...} blob.
-    Returns the parsed alert dict, or None if not found.
     """
     for msg in reversed(messages):
         content = getattr(msg, "content", None)
@@ -586,22 +622,15 @@ def route_after_classify(state: IncidentState) -> Literal["execute", "deny", "fe
 def route_after_hitl(state: IncidentState) -> Literal["execute", "abort", "classify_incident", "wait"]:
     """
     After propose_step, decide what to do next.
-
-    - wait -> HITL is still pending (no user decision yet)
-    - execute -> user approved
-    - abort -> user denied
-    - classify_incident -> new alert detected while waiting
     """
     if state.get("hitl_pending", False) and "_hitl_approved" not in state:
         print("DEBUG: route_after_hitl -> wait (HITL pending)")
         return "wait"
 
-    # Explicit new-alert flag set by propose_step (legacy path)
     if state.get("_hitl_new_alert", False):
         print("DEBUG: route_after_hitl -> classify_incident (explicit new_alert flag)")
         return "classify_incident"
 
-    # Detect a new unprocessed alert in messages (the main multi-incident path)
     messages = state.get("messages", [])
     incidents = state.get("incidents", [])
     alert = _extract_alert_from_messages(messages)
@@ -610,7 +639,6 @@ def route_after_hitl(state: IncidentState) -> Literal["execute", "abort", "class
         alert_type = alert["alert_type"]
         alert_triggered_at = alert.get("triggered_at", "")
 
-        # Is there already a matching incident created within the last 3 minutes?
         already_processed = False
         for inc in incidents:
             if inc["type"] != alert_type:

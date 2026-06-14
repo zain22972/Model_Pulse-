@@ -3,7 +3,7 @@ MLOps Incident Commander — State Schema
 Mirrors the lead_state.py pattern from the starter kit.
 """
 
-from typing import Annotated, Literal, NotRequired, TypedDict
+from typing import Annotated, Any, Literal, NotRequired, TypedDict
 from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage
 
@@ -82,6 +82,8 @@ class TimelineEntry(TypedDict):
 
 class IncidentState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
+    # CopilotKit integration (required for AG-UI state streaming)
+    copilotkit: NotRequired[Any]
 
     # Active incidents list
     incidents: list[Incident]
