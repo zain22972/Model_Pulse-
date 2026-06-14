@@ -60,9 +60,7 @@ export async function POST(req: NextRequest) {
   // 1. Push to live SSE feed
   incidentBus.emit("incident", event);
 
-  // 2. Forward to BFF removed to avoid double-triggering during local dev
-  // In a production app, this would be the primary trigger mechanism.
-  /*
+  // 2. Forward to BFF → triggers LangGraph agent
   const bffUrl = process.env.BFF_URL ?? "http://localhost:4000";
   try {
     await fetch(`${bffUrl}/trigger-incident`, {
@@ -73,7 +71,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("[webhook] Failed to reach BFF:", err);
   }
-  */
 
   return NextResponse.json({ ok: true, incident_id: event.id, severity });
 }
