@@ -164,16 +164,18 @@ function MLOpsPageInner({
   const [viewIncidentId, setViewIncidentId] = useState<string | null>(null);
   const latestIncidentIdRef = useRef<string | null>(null);
 
-  // Sync viewIncidentId up to the shell so it can remount the CopilotKit provider
-  // with a fresh threadId whenever the user switches to a real (non-local) incident.
+  // Switch view to a different incident. Only remounts the CopilotKit
+  // provider (new thread) when the user MANUALLY clicks a different incident
+  // that already has a real ID — never on auto-assignment from the agent.
   const handleSelectIncident = useCallback(
-    (id: string) => {
+    (id: string, { manual = false }: { manual?: boolean } = {}) => {
       setViewIncidentId(id);
-      // Only create a new thread for real (non-local) incidents.
-      // Local stubs share the current thread since the agent hasn't
-      // assigned them a real ID yet.
+      // Only create a new thread when the user explicitly clicks a
+      // DIFFERENT real incident. This prevents the remount loop where
+      // the agent assigns an ID → triggers onThreadChange → remounts →
+      // wipes state.
       const isLocal = id.startsWith("LOCAL-");
-      if (!isLocal) {
+      if (manual && !isLocal) {
         onThreadChange(id);
       }
     },
@@ -199,7 +201,7 @@ function MLOpsPageInner({
               )
           )
         );
-        handleSelectIncident(activeIncidentId);
+        handleSelectIncident(activeIncidentId, { manual: false });
       }
     }
   }, [activeIncidentId, agentIncidents, handleSelectIncident]);
@@ -446,7 +448,7 @@ function MLOpsPageInner({
             mergedIncidents.map((incident) => (
               <div
                 key={incident.id}
-                onClick={() => handleSelectIncident(incident.id)}
+                onClick={() => handleSelectIncident(incident.id, { manual: true })}
                 className={`cursor-pointer rounded-lg border p-3 space-y-2 text-xs font-mono transition-all ${
                   viewIncidentId === incident.id
                     ? "bg-zinc-800 border-zinc-500"
