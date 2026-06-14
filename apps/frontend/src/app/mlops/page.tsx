@@ -31,6 +31,7 @@ import { RunbookApprovalCard } from "@/components/mlops/RunbookApprovalCard";
 import { RemediationApprovalModal } from "@/components/mlops/RemediationApprovalModal";
 import { TimelinePanel, TimelineEntry } from "@/components/mlops/TimelinePanel";
 import { WebhookTriggerPanel } from "@/components/mlops/WebhookTriggerPanel";
+import { CopilotChatConfigurationProvider } from "@copilotkit/react-core/v2";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -93,9 +94,38 @@ const STATUS_DOT: Record<string, string> = {
   resolved:      "bg-emerald-500",
 };
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Shell: owns incident-selection state and remounts CopilotKit per incident ─
 
 export default function MLOpsPage() {
+  // The active thread ID is derived from the selected incident.
+  // Keeping this state here (outside CopilotKit context) means we can
+  // remount the entire provider — and therefore get a fresh thread —
+  // whenever the user switches to a different incident.
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+
+  return (
+    <CopilotChatConfigurationProvider
+      key={activeThreadId ?? "default"}
+      agentId="incident"
+      threadId={activeThreadId ?? undefined}
+    >
+      <MLOpsPageInner
+        activeThreadId={activeThreadId}
+        onThreadChange={setActiveThreadId}
+      />
+    </CopilotChatConfigurationProvider>
+  );
+}
+
+// ── Inner component: all agent hooks live here ────────────────────────────────
+
+function MLOpsPageInner({
+  activeThreadId,
+  onThreadChange,
+}: {
+  activeThreadId: string | null;
+  onThreadChange: (id: string | null) => void;
+}) {
   const { agent } = useAgent({ agentId: "incident" });
   const { copilotkit } = useCopilotKit();
 
@@ -135,6 +165,22 @@ export default function MLOpsPage() {
   const [viewIncidentId, setViewIncidentId] = useState<string | null>(null);
   const latestIncidentIdRef = useRef<string | null>(null);
 
+  // Sync viewIncidentId up to the shell so it can remount the CopilotKit provider
+  // with a fresh threadId whenever the user switches to a real (non-local) incident.
+  const handleSelectIncident = useCallback(
+    (id: string) => {
+      setViewIncidentId(id);
+      // Only create a new thread for real (non-local) incidents.
+      // Local stubs share the current thread since the agent hasn't
+      // assigned them a real ID yet.
+      const isLocal = id.startsWith("LOCAL-");
+      if (!isLocal) {
+        onThreadChange(id);
+      }
+    },
+    [onThreadChange]
+  );
+
   // When agent finishes and produces a real incident, auto-select it
   // (but only if we were viewing its local stub, or nothing)
   useEffect(() => {
@@ -154,10 +200,10 @@ export default function MLOpsPage() {
               )
           )
         );
-        setViewIncidentId(activeIncidentId);
+        handleSelectIncident(activeIncidentId);
       }
     }
-  }, [activeIncidentId, agentIncidents]);
+  }, [activeIncidentId, agentIncidents, handleSelectIncident]);
 
   // Find the incident the user is viewing (may be a local stub or real)
   const viewedIncident: Incident | undefined = mergedIncidents.find(
@@ -296,7 +342,7 @@ export default function MLOpsPage() {
       });
 
       // 2. Immediately switch the view to this new local incident
-      setViewIncidentId(localId);
+      handleSelectIncident(localId);
 
       // 2b. Toast notification
       toast.info(`Alert fired: ${alertType.replace(/_/g, " ")}`, {
@@ -401,7 +447,7 @@ export default function MLOpsPage() {
             mergedIncidents.map((incident) => (
               <div
                 key={incident.id}
-                onClick={() => setViewIncidentId(incident.id)}
+                onClick={() => handleSelectIncident(incident.id)}
                 className={`cursor-pointer rounded-lg border p-3 space-y-2 text-xs font-mono transition-all ${
                   viewIncidentId === incident.id
                     ? "bg-zinc-800 border-zinc-500"
