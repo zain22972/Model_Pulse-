@@ -107,7 +107,6 @@ export default function MLOpsPage() {
     <CopilotChatConfigurationProvider
       key={activeThreadId ?? "default"}
       agentId="incident"
-      threadId={activeThreadId ?? undefined}
     >
       <MLOpsPageInner
         activeThreadId={activeThreadId}
