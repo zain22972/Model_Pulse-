@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { CopilotKitProviderShell } from "@/components/copilot/CopilotKitProviderShell";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
+import { Navbar } from "@/components/ui/Navbar";
 import "./globals.css";
 // v2 owns its own stylesheet. Do NOT import @copilotkit/react-ui/styles.css —
 // v1's .copilotKitButton / .copilotKitSidebar / .copilotKitWindow rules
@@ -17,9 +20,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "AG-UI Canvas | CopilotKit Hackathon Starter",
+  title: "Model Pulse — MLOps Incident Commander",
   description:
-    "Hackathon starter kit: CopilotKit canvas + threads drawer + Deep Agents + Gemini + Notion MCP",
+    "AI-powered MLOps incident commander. Detect drift, diagnose root causes, and orchestrate remediation with LangGraph and CopilotKit.",
 };
 
 export default function RootLayout({
@@ -28,9 +31,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${GeistMono.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <body className="subpixel-antialiased">
-        <CopilotKitProviderShell>{children}</CopilotKitProviderShell>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <CopilotKitProviderShell>
+            <Navbar />
+            <main className="pt-14">
+              {children}
+            </main>
+            <Toaster richColors position="bottom-right" />
+          </CopilotKitProviderShell>
+        </ThemeProvider>
       </body>
     </html>
   );

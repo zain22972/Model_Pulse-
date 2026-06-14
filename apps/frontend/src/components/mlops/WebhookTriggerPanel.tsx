@@ -7,6 +7,8 @@
  */
 
 import { useState } from "react";
+import { toast } from "sonner";
+import { Zap } from "lucide-react";
 
 const ALERT_TYPES = [
   {
@@ -92,18 +94,32 @@ export function WebhookTriggerPanel({ onFire }: WebhookTriggerPanelProps) {
         );
       } else {
         setStates((s) => ({ ...s, [alertType]: "error" }));
+        toast.error(`Webhook failed: ${res.status} ${res.statusText}`, {
+          description: `Alert type: ${alertType} | Model: ${model}`,
+        });
       }
-    } catch {
+    } catch (err) {
       setStates((s) => ({ ...s, [alertType]: "error" }));
+      toast.error("Webhook request failed", {
+        description: err instanceof Error ? err.message : "Network error",
+      });
     }
   };
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-          🔫 Fire Mock Alert
-        </span>
+      <div className="flex items-center gap-2.5">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center flex-shrink-0">
+          <Zap size={14} className="text-white" />
+        </div>
+        <div className="flex-1 flex items-center justify-between">
+          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Simulate Alert
+          </span>
+          <span className="text-[10px] text-zinc-600 font-mono bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">
+            press <kbd className="text-zinc-400">F</kbd>
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-2">

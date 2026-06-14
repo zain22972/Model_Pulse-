@@ -23,6 +23,8 @@ import {
   useInterrupt,
 } from "@copilotkit/react-core/v2";
 import { useCopilotReadable } from "@copilotkit/react-core";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { ChartCanvas, ChartSpec } from "@/components/mlops/ChartCanvas";
 import { RunbookApprovalCard } from "@/components/mlops/RunbookApprovalCard";
@@ -236,34 +238,34 @@ export default function MLOpsPage() {
       };
 
       setShowHitlModal(true);
+      // Bug fix: only render RunbookApprovalCard in sidebar; RemediationApprovalModal
+      // is rendered separately in the center panel via showHitlModal state.
       return (
-        <>
-          <RunbookApprovalCard
-            incidentId={cardIncidentId}
-            step={event.value.step ?? ""}
-            stepNumber={event.value.step_number ?? 1}
-            totalSteps={event.value.total_steps ?? 1}
-            riskLevel={(event.value.risk_level as "safe" | "risky" | "destructive") ?? "risky"}
-            estimatedImpact={event.value.estimated_impact ?? ""}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-          {typeof document !== "undefined" && modalIncident && (
-            <RemediationApprovalModal
-              incident={modalIncident}
-              step={event.value.step ?? ""}
-              stepNumber={event.value.step_number ?? 1}
-              totalSteps={event.value.total_steps ?? 1}
-              riskLevel={(event.value.risk_level as "safe" | "risky" | "destructive") ?? "risky"}
-              estimatedImpact={event.value.estimated_impact ?? ""}
-              onApprove={handleApprove}
-              onReject={handleReject}
-            />
-          )}
-        </>
+        <RunbookApprovalCard
+          incidentId={cardIncidentId}
+          step={event.value.step ?? ""}
+          stepNumber={event.value.step_number ?? 1}
+          totalSteps={event.value.total_steps ?? 1}
+          riskLevel={(event.value.risk_level as "safe" | "risky" | "destructive") ?? "risky"}
+          estimatedImpact={event.value.estimated_impact ?? ""}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       );
     },
   });
+
+  // ── Keyboard shortcut: F = focus trigger panel ───────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "f" || e.key === "F") {
+        if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+        document.getElementById("webhook-trigger-panel")?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // ── handleFire: INSTANT UI + background agent trigger ────────────────────
   const handleFire = useCallback(
@@ -295,6 +297,11 @@ export default function MLOpsPage() {
 
       // 2. Immediately switch the view to this new local incident
       setViewIncidentId(localId);
+
+      // 2b. Toast notification
+      toast.info(`Alert fired: ${alertType.replace(/_/g, " ")}`, {
+        description: `Model: ${model} — agent is investigating…`,
+      });
 
       // 3. Dismiss any active HITL interrupt
       if (activeResolveRef.current) {
@@ -348,7 +355,7 @@ export default function MLOpsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100 overflow-hidden">
+    <div className="flex h-[calc(100vh-3.5rem)] bg-zinc-950 text-zinc-100 overflow-hidden">
       {/* ── LEFT: Incident feed + trigger ──────────────────────────────── */}
       <div className="w-72 flex-shrink-0 border-r border-zinc-800 flex flex-col">
 
@@ -445,7 +452,7 @@ export default function MLOpsPage() {
         </div>
 
         {/* Trigger panel */}
-        <div className="p-3 bg-zinc-950">
+        <div id="webhook-trigger-panel" className="p-3 bg-zinc-950">
           <WebhookTriggerPanel onFire={handleFire} />
         </div>
       </div>
@@ -482,15 +489,14 @@ export default function MLOpsPage() {
           {/* Charts area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
-          {/* DEBUG: HITL state indicator */}
-          <div className="text-[10px] font-mono px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-400">
-            DEBUG hitl_pending={String(state.hitl_pending)} | suggested_step={state.suggested_runbook_step?.substring(0,30) ?? "none"} | showModal={String(showHitlModal)}
-          </div>
-
           {/* Queued incident placeholder */}
           {viewedIncident?.isLocal ? (
-            <div className="flex flex-col items-center justify-center h-64 rounded-xl border border-zinc-800 bg-zinc-900/40 gap-4">
-              <div className="w-10 h-10 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center h-64 rounded-xl border border-zinc-800 bg-zinc-900/40 gap-4"
+            >
+              <div className="w-10 h-10 border-2 border-indigo-700 border-t-indigo-400 rounded-full animate-spin" />
               <div className="text-center">
                 <p className="text-zinc-300 font-medium text-sm">
                   {viewedIncident.type.replace(/_/g, " ").toUpperCase()}
@@ -500,7 +506,7 @@ export default function MLOpsPage() {
                 </p>
                 <p className="text-zinc-700 text-xs mt-3">This takes ~40 seconds. You can switch to another incident below.</p>
               </div>
-            </div>
+            </motion.div>
           ) : (
             <div className="relative">
               {agent?.isRunning && !viewedIncident?.isLocal && (

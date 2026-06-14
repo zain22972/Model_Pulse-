@@ -344,3 +344,99 @@ html {
 [data-enrichment-tier-pop="true"] {
   animation: enrichment-tier-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) 1;
 }
+
+/*
+  ─────────────────────────────────────────────────────────────────────
+  Model Pulse — CopilotKit v2 sidebar dark theme overrides
+  ─────────────────────────────────────────────────────────────────────
+  Scoped to .copilotkit-sidebar to avoid bleeding into other pages.
+  Overrides background, message bubbles, input pill, and scrollbar.
+*/
+
+/* Sidebar shell */
+.copilotKitSidebar,
+[data-copilot-sidebar="true"] {
+  background: #09090b !important;
+  border-left: 1px solid #27272a !important;
+}
+
+/* Chat container scrollbar */
+.copilotKitSidebar ::-webkit-scrollbar {
+  width: 4px;
+}
+.copilotKitSidebar ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.copilotKitSidebar ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 9999px;
+}
+
+/* Input pill */
+.copilotKitSidebar textarea,
+.copilotKitSidebar input[type="text"] {
+  background: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+  color: #e4e4e7 !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.8125rem !important;
+}
+.copilotKitSidebar textarea:focus,
+.copilotKitSidebar input[type="text"]:focus {
+  outline: none !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Send button */
+.copilotKitSidebar button[type="submit"],
+.copilotKitSidebar [data-send-button] {
+  background: #6366f1 !important;
+  color: #fff !important;
+  border-radius: 0.5rem !important;
+  transition: background 0.15s !important;
+}
+.copilotKitSidebar button[type="submit"]:hover,
+.copilotKitSidebar [data-send-button]:hover {
+  background: #4f46e5 !important;
+}
+
+/* User message bubble */
+.copilotKitUserMessage {
+  background: #1e1b4b !important;
+  border: 1px solid #312e81 !important;
+  color: #c7d2fe !important;
+  border-radius: 0.875rem 0.875rem 0.25rem 0.875rem !important;
+  font-size: 0.8125rem !important;
+  max-width: 85% !important;
+  margin-left: auto !important;
+  padding: 0.625rem 0.875rem !important;
+}
+
+/* Assistant message bubble */
+.copilotKitAssistantMessage {
+  background: #18181b !important;
+  border: 1px solid #27272a !important;
+  color: #d4d4d8 !important;
+  border-radius: 0.25rem 0.875rem 0.875rem 0.875rem !important;
+  font-size: 0.8125rem !important;
+  max-width: 92% !important;
+  padding: 0.625rem 0.875rem !important;
+}
+
+/* Typing indicator dots */
+.copilotKitSidebar [data-typing-indicator] span {
+  background: #6366f1 !important;
+}
+
+/* Header bar */
+.copilotKitSidebar [data-sidebar-header],
+.copilotKitSidebar header {
+  background: #09090b !important;
+  border-bottom: 1px solid #27272a !important;
+  color: #a1a1aa !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}

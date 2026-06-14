@@ -47,8 +47,8 @@ export function ToolCallView({
 }: ToolCallViewProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const summary = useResultSummary(result, status);
-  const argsString = useArgsPreview(args);
+  const summary = getResultSummary(result, status);
+  const argsString = getArgsPreview(args);
   const isLive =
     status === ToolCallStatus.InProgress || status === ToolCallStatus.Executing;
 
@@ -159,7 +159,7 @@ function DetailBlock({
  *   string property) before falling back to a length-bounded preview
  * - String results: trimmed preview
  */
-function useResultSummary(
+function getResultSummary(
   result: string | undefined,
   status: ToolCallStatus,
 ): string {
@@ -204,7 +204,7 @@ function useResultSummary(
   return truncate(result.replace(/\s+/g, " ").trim(), 40);
 }
 
-function useArgsPreview(args: unknown): string {
+function getArgsPreview(args: unknown): string {
   if (args === undefined || args === null) return "";
   if (typeof args === "string") return args;
   try {
